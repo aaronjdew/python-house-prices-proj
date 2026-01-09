@@ -9,6 +9,7 @@
 
 # src
 src/__pycache__
+src/sandbox.py
 
 # VS Code
 .vscode/
