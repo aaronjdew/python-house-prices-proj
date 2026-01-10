@@ -38,3 +38,18 @@ CPI_MULTI: Final[int] = 100
 
 # Future price shifted row number
 ROW_PRICE_SHIFT: Final[int] = -13
+
+# -- ML MODEL ---
+
+# Number of Weeks used for backtesting
+BT_WEEKS: Final[int] = 260
+
+# Number of Weeks used for backtesting (STEP)
+BT_STEP: Final[int] = 52
+
+# -- Optional: Use Last Year Avgs --
+# Improve accuracy by rolling back number of weeks
+IMP_ACC_ROLL: Final[int] = 52
+
+# Improve accuracy by rolling back number of weeks (header)
+IMP_ACC_HDR: Final[str] = "_year"
