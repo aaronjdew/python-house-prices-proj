@@ -7,12 +7,14 @@
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score as ac
+from sklearn.inspection import permutation_importance as pi
 import constants as cn
 
 
-def ml_model(df_prp_data: pd.DataFrame, use_lst_yr_avg: bool) -> tuple[np.ndarray, float, str]:
+def ml_model(df_prp_data: pd.DataFrame, use_lst_yr_avg: bool) -> tuple[np.ndarray, float, list, str, pd.DataFrame]:
     """---------------------------------------------------
     ML model to predict house prices
         -- Return the predictions and accuracy
@@ -40,12 +42,12 @@ def ml_model(df_prp_data: pd.DataFrame, use_lst_yr_avg: bool) -> tuple[np.ndarra
 
         # Run predictions
         preds, accuracy = backtest(
-            df_prp_data, predictors + yearly_ratios, target)
+            df_hse_data, predictors + yearly_ratios, target)
     else:
         # Run predictions
-        preds, accuracy = backtest(df_prp_data, predictors, target)
+        preds, accuracy = backtest(df_hse_data, predictors, target)
 
-    return preds, accuracy, target
+    return preds, accuracy, predictors, target, df_hse_data
 
 
 def predict(train: pd.DataFrame, test: pd.DataFrame, predictors: list, target: str) -> np.ndarray:
@@ -75,6 +77,32 @@ def backtest(df_hse_data: pd.DataFrame, predictors: list, target: str) -> tuple[
     preds = np.concatenate(all_preds)
 
     return preds, ac(df_hse_data.iloc[cn.BT_WEEKS:][target], preds)
+
+
+def model_diags(preds: np.ndarray, df_mod_data: pd.DataFrame, predictors: list, target: str, show_perm: bool) -> None:
+    """---------------------------------------------------
+    Run model diagnostics
+    ---------------------------------------------------"""
+
+    if show_perm:
+        rf = RandomForestClassifier(min_samples_split=10, random_state=1)
+        rf.fit(df_mod_data[predictors], df_mod_data[target])
+        result = pi(rf, df_mod_data[predictors],
+                    df_mod_data[target], n_repeats=10, random_state=1)
+        print(result["importances_mean"])
+
+    # Create a series of prediction matches against the results
+    s_pred_match = preds == df_mod_data[target].iloc[cn.BT_WEEKS:]
+
+    # Create a plot data dataframe
+    df_plot_data = df_mod_data.iloc[cn.BT_WEEKS:].copy()
+
+    # Create scatter graph
+    df_plot_data.reset_index().plot.scatter(
+        x="index", y="adj_price", c=s_pred_match)
+
+    # Show scatter
+    plt.show()
 
 
 if __name__ == "__main__":
